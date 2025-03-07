@@ -1,26 +1,24 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import a2kLogo from "../assets/a2klogo.png"; 
-import flexiSchedLogo from "../assets/logo.png"; 
+import a2kLogo from "../assets/a2klogo.png"; // Top-left logo
+import flexiSchedLogo from "../assets/logo.png"; // Centered above form
 
 const Login = () => {
-  const navigate = useNavigate();
-  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isRemembered, setIsRemembered] = useState(false);
+  const [error, setError] = useState("");
 
-  // Load remembered email on page load
+  // Load remembered email when component mounts
   useEffect(() => {
-    const rememberedEmail = localStorage.getItem("rememberedEmail");
-    if (rememberedEmail) {
-      setEmail(rememberedEmail);
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
       setIsRemembered(true);
     }
   }, []);
 
+  // Function to validate form inputs
   const validateForm = (email, password) => {
     if (!email.trim() && !password.trim()) return "Email and Password are required.";
     if (!email.trim()) return "Email is required.";
@@ -32,8 +30,9 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(""); // Clear previous errors
 
+    // Validate form before sending request
     const validationError = validateForm(email, password);
     if (validationError) {
       setError(validationError);
@@ -41,21 +40,24 @@ const Login = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:4000/api/auth/login", { email, password });
-
-      const { accessToken, user } = response.data;
+      const response = await axios.post("http://localhost:4000/api/auth/login", {
+        email,
+        password,
+      });
 
       // Store tokens in localStorage
-      localStorage.setItem("accessToken", accessToken);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("accessToken", response.data.accessToken);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
+      // Save or remove email based on Remember Me state
       if (isRemembered) {
         localStorage.setItem("rememberedEmail", email);
       } else {
         localStorage.removeItem("rememberedEmail");
       }
 
-      navigate("/homepage"); // Redirect after login
+      console.log(localStorage.getItem("user"));
+      window.location.href = "/homepage"; // Redirect after login
     } catch (err) {
       setError("Invalid credentials. Please try again.");
     }
@@ -68,17 +70,22 @@ const Login = () => {
 
       {/* Centered Login Box */}
       <div className="flex flex-col items-center justify-center w-full">
+        {/* FlexiSched Logo (above login form) */}
         <img src={flexiSchedLogo} alt="FlexiSched Logo" className="w-32 mb-4 h-25" />
 
         <div className="w-full max-w-sm bg-white p-6 rounded-lg shadow-md border">
-          <h3 className="text-xl font-semibold text-center text-gray-700 mb-6">Employee Login</h3>
+          <h3 className="text-xl font-semibold text-center text-gray-700 mb-6">
+            Employee Login
+          </h3>
 
           {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
           <form onSubmit={handleSubmit}>
             {/* Email Input */}
             <div className="mb-4">
-              <label htmlFor="email" className="block text-gray-700 font-medium">Email</label>
+              <label htmlFor="email" className="block text-gray-700 font-medium">
+                Email
+              </label>
               <input
                 type="email"
                 id="email"
@@ -91,7 +98,9 @@ const Login = () => {
 
             {/* Password Input */}
             <div className="mb-4">
-              <label htmlFor="password" className="block text-gray-700 font-medium">Password</label>
+              <label htmlFor="password" className="block text-gray-700 font-medium">
+                Password
+              </label>
               <input
                 type="password"
                 id="password"
@@ -113,7 +122,9 @@ const Login = () => {
                 />
                 Remember Me
               </label>
-              <a href="/forgot-password" className="text-blue-500 hover:underline">Forgot Password?</a>
+              <a href="/forgot-password" className="text-blue-500 hover:underline">
+                Forgot Password?
+              </a>
             </div>
 
             {/* Login Button */}
@@ -124,7 +135,6 @@ const Login = () => {
               Login
             </button>
           </form>
-
           <p className="text-center text-sm mt-4">
             <a href="/register" className="text-blue-500">Register</a>
           </p>
